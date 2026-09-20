@@ -1,0 +1,1205 @@
+The user is asking me to help them complete the preparatory steps for an experiment in an offline domestic (Chinese) environment. They need to:
+
+1. Create a J2EE web project that connects to KingbaseES (人大金仓) database
+2. Prepare JDK and Tomcat versions compatible with Phytium (飞腾), Loongson (龙芯), and Hygon (海光) CPU architectures
+3. Package everything to fit on a USB drive
+4. The web project should display database information in a browser
+5. Database table: student with fields id, info, class (all varchar)
+6. Their group number is 3 (三组)
+
+Let me search for relevant information first, then provide comprehensive guidance.
+
+Key considerations:
+- Offline environment (no internet during lab)
+- Domestic CPU architectures: ARM (Phytium/飞腾), MIPS/LoongArch (Loongson/龙芯), x86 (Hygon/海光)
+- KingbaseES database (人大金仓) - PostgreSQL compatible
+- JDK and Tomcat versions need to support these architectures
+- Everything needs to be on a USB drive
+
+Let me search for the specific JDK and Tomcat versions that work on these architectures.
+[object Object]
+[object Object]
+Let me analyze the user's requirements:
+
+1. They need to prepare for an experiment in an offline domestic Chinese environment
+2. Three CPU architectures: 飞腾 (Phytium, ARM), 龙芯 (Loongson, LoongArch), 海光 (Hygon, x86)
+3. Need JDK and Tomcat for all three architectures
+4. Need a J2EE web project that connects to KingbaseES (人大金仓) database
+5. Database table: student with fields id, info, class (all varchar)
+6. Group number is 3
+7. Everything needs to fit on a USB drive
+8. Configuration should be in config files for easy adjustment during the experiment
+9. Need to display database info in browser
+
+Let me search for more specific information about JDK versions for these architectures and KingbaseES JDBC driver.
+[object Object]
+[object Object]
+[object Object]
+Based on the search results and my knowledge, I now have enough information to provide a comprehensive answer. Let me structure the response properly.
+
+Key points:
+1. Three CPU architectures:
+   - 飞腾 (Phytium): ARM (aarch64)
+   - 龙芯 (Loongson): LoongArch (can also run MIPS-compatible binaries)
+   - 海光 (Hygon): x86-64
+
+2. JDK versions needed for each:
+   - 海光 (x86-64): Standard OpenJDK x64, or 毕昇JDK, or KonaJDK (Tencent), or Dragonwell (Alibaba)
+   - 飞腾 (ARM): OpenJDK aarch64, or 毕昇JDK for ARM
+   - 龙芯 (LoongArch): 龙芯官方JDK (LoongArch64), or OpenJDK built for LoongArch
+
+3. Tomcat: Platform-independent (pure Java), any version works. Recommend Tomcat 8.5 or 9.0.
+
+4. KingbaseES JDBC driver: Need `kingbase8-*.jar` - KingbaseES is PostgreSQL-based.
+
+5. The web project structure.
+
+Let me provide comprehensive guidance. I'll write out the complete solution including all file structures, code, and instructions.
+
+For the database connection: KingbaseES uses JDBC driver similar to PostgreSQL. The connection URL format is typically:
+`jdbc:kingbase8://host:port/database`
+
+Let me provide the complete answer now.
+# 🎯 离线国产化环境 J2EE Web 项目完整准备方案（实验前）
+
+---
+
+## 一、三大 CPU 架构梳理与 JDK/Tomcat 选型
+
+### 架构对比一览表
+
+| 项目 | 飞腾 (Phytium) | 龙芯 (Loongson) | 海光 (Hygon) |
+|------|:---:|:---:|:---:|
+| **指令集** | ARM v8 (aarch64) | LoongArch64 | x86-64 |
+| **JDK 文件名特征** | `_aarch64_` / `_arm64_` | `_loongarch64_` / `_loongson_` | `_x64_` / `_amd64_` |
+| **Tomcat 文件名特征** | 与JDK一致架构 | 与JDK一致架构 | 与JDK一致架构 |
+| **获取渠道** | 毕昇JDK、OpenJDK | **龙芯中科官网** | 标准OpenJDK |
+
+---
+
+### 1.1 JDK 版本推荐
+
+| CPU架构 | 推荐JDK | 下载来源 | 压缩包命名示例 |
+|---------|---------|----------|---------------|
+| **海光 (x86-64)** | OpenJDK 11 / KonaJDK 8/11 | [Adoptium](https://adoptium.net)、[阿里龙井](https://github.com/alibaba/dragonwell8) | `OpenJDK11U-jdk_x64_linux_hotspot_11.0.20_8.tar.gz` |
+| **飞腾 (ARM64)** | 毕昇JDK 11 / OpenJDK 11 aarch64 | [毕昇JDK](https://www.hikunpeng.com/developer/boostkit/bishengjdk)、[Adoptium](https://adoptium.net) | `bisheng-jdk-11.0.20-linux-aarch64.tar.gz` |
+| **龙芯 (LoongArch64)** | **龙芯版 OpenJDK 8/11** | **[龙芯中科官网](https://www.loongson.cn)** → 服务与支持 → 资料下载 | `jdk-11-loongarch64-linux.tar.gz` |
+
+> ⚠️ **特别提醒**：龙芯的 JDK 必须去 **龙芯中科官网** 下载 LoongArch 专用版本，普通 OpenJDK 的 MIPS 或 x86 版本不兼容！
+
+---
+
+### 1.2 Tomcat 版本推荐
+
+| 项目 | 版本 | 说明 |
+|------|------|------|
+| **Tomcat** | **9.0.x** 或 **8.5.x** | 纯Java编写，跨架构（只需要匹配JDK） |
+
+- Tomcat 是 **纯 Java 项目**，本身不区分 CPU 架构。
+- 只要 JDK 能在对应 CPU 上运行，Tomcat 就能运行。
+- 下载 `apache-tomcat-9.0.xx.tar.gz` 一份即可（无需每一架构一份）。
+
+---
+
+### 1.3 JDK/Tomcat 版本兼容速查
+
+| JDK版本 | 支持Tomcat版本 | Java EE规范 |
+|---------|:---:|:---:|
+| JDK 8 | Tomcat 7/8/8.5/9 | Servlet 3.1 |
+| JDK 11 | Tomcat 9/10 | Servlet 4.0/5.0 |
+
+> ✅ **推荐组合**：**JDK 11 + Tomcat 9.0**（稳定、兼容性好，三种架构均有对应JDK）
+
+---
+
+## 二、Web 项目完整结构与代码
+
+### 2.1 项目目录结构
+
+```
+KingbaseDemo/
+├── WebContent/
+│   ├── WEB-INF/
+│   │   ├── web.xml
+│   │   └── lib/
+│   │       └── kingbase8-8.6.0.jar     ← 人大金仓 JDBC 驱动
+│   ├── index.jsp
+│   └── META-INF/
+│       └── context.xml                  ← Tomcat数据源配置（重要！）
+└── src/
+    └── dbconfig.properties              ← 数据库连接配置文件
+```
+
+### 2.2 核心文件内容
+
+#### 文件 ①：`dbconfig.properties`（数据库配置 — 实验时直接改这个）
+
+```properties
+# ==========================================
+#  人大金仓 KingbaseES 数据库连接配置
+#  实验时只需修改本文件中的 4 项参数
+# ==========================================
+
+# 数据库驱动类名（固定，无需修改）
+db.driver=com.kingbase8.Driver
+
+# 数据库连接URL — 实验时替换 IP/端口/库名
+db.url=jdbc:kingbase8://127.0.0.1:54321/test
+
+# 数据库用户名 — 实验时替换
+db.username=system
+
+# 数据库密码 — 实验时替换
+db.password=123456
+
+# 连接池参数（可选，按需调整）
+db.maxActive=20
+db.maxIdle=10
+db.minIdle=2
+```
+
+#### 文件 ②：`web.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <display-name>KingbaseDemo</display-name>
+    <description>J2EE连接人大金仓数据库实验 - 第3组</description>
+
+    <!-- 欢迎页 -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <!-- 数据库配置路径上下文参数 -->
+    <context-param>
+        <param-name>dbConfigPath</param-name>
+        <param-value>/WEB-INF/classes/dbconfig.properties</param-value>
+    </context-param>
+
+</web-app>
+```
+
+#### 文件 ③：`index.jsp`（核心展示页面）
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8" 
+    import="java.sql.*, java.util.*, java.io.*" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>第3组 - 人大金仓数据库连接实验</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; 
+               margin: 40px; background: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; 
+                     background: white; padding: 30px; 
+                     border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #c0392b; text-align: center; border-bottom: 2px solid #c0392b; 
+             padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background: #c0392b; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #fff3f3; }
+        .info { background: #ffeaea; padding: 15px; border-radius: 5px; 
+                margin: 15px 0; border-left: 4px solid #c0392b; }
+        .error { background: #fce4e4; padding: 15px; border-radius: 5px; 
+                 margin: 15px 0; border-left: 4px solid #e74c3c; color: #c0392b; }
+        .success { background: #eafaf1; padding: 15px; border-radius: 5px; 
+                   margin: 15px 0; border-left: 4px solid #27ae60; color: #1e8449; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🏫 第3组 - J2EE连接人大金仓数据库实验</h2>
+    
+    <div class="info">
+        <strong>📋 实验信息</strong><br>
+        分组编号：第<strong>3</strong>组<br>
+        数据库类型：人大金仓 KingbaseES<br>
+        表名：<strong>student</strong><br>
+        字段：id (varchar) | info (varchar) | class (varchar)
+    </div>
+
+<%
+    // ============ 加载数据库配置 ============
+    Properties props = new Properties();
+    String configPath = "/WEB-INF/classes/dbconfig.properties";
+    try {
+        InputStream input = application.getResourceAsStream(configPath);
+        if (input != null) {
+            props.load(input);
+            input.close();
+        }
+    } catch (Exception e) {
+        out.println("<div class='error'>⚠ 配置文件读取失败: " + e.getMessage() + "</div>");
+        return;
+    }
+
+    String driver   = props.getProperty("db.driver",   "com.kingbase8.Driver");
+    String url      = props.getProperty("db.url",      "jdbc:kingbase8://127.0.0.1:54321/test");
+    String username = props.getProperty("db.username", "system");
+    String password = props.getProperty("db.password", "123456");
+
+    Connection conn = null;
+    Statement  stmt = null;
+    ResultSet  rs   = null;
+
+    try {
+        // ============ 加载驱动并连接 ============
+        Class.forName(driver);
+        conn = DriverManager.getConnection(url, username, password);
+        
+        out.println("<div class='success'>✅ 数据库连接成功！URL: " + url + "</div>");
+
+        // ============ 查询 student 表 ============
+        stmt = conn.createStatement();
+        String sql = "SELECT id, info, class FROM student ORDER BY id";
+        rs = stmt.executeQuery(sql);
+
+        out.println("<table>");
+        out.println("<tr><th>序号</th><th>ID（分组号）</th><th>INFO（信息内容）</th><th>CLASS（班级）</th></tr>");
+        
+        int rowNum = 0;
+        while (rs.next()) {
+            rowNum++;
+            out.println("<tr>");
+            out.println("<td>" + rowNum + "</td>");
+            out.println("<td>" + rs.getString("id") + "</td>");
+            out.println("<td>" + rs.getString("info") + "</td>");
+            out.println("<td>" + rs.getString("class") + "</td>");
+            out.println("</tr>");
+        }
+        out.println("</table>");
+
+        if (rowNum == 0) {
+            out.println("<div class='info'>📭 当前 student 表无数据（实验时请先插入数据）</div>");
+        } else {
+            out.println("<div class='success'>📊 共查询到 <strong>" + rowNum + "</strong> 条记录</div>");
+        }
+
+    } catch (ClassNotFoundException e) {
+        out.println("<div class='error'>❌ 驱动未加载: " + e.getMessage() + 
+                    "<br>请将 kingbase8-*.jar 放入 WEB-INF/lib/ 目录</div>");
+    } catch (SQLException e) {
+        out.println("<div class='error'>❌ 数据库连接失败: " + e.getMessage() + 
+                    "<br>请在 dbconfig.properties 中检查连接参数</div>");
+    } catch (Exception e) {
+        out.println("<div class='error'>❌ 未知错误: " + e.getMessage() + "</div>");
+    } finally {
+        // ============ 释放资源 ============
+        try { if (rs   != null) rs.close();   } catch (Exception e) {}
+        try { if (stmt != null) stmt.close(); } catch (Exception e) {}
+        try { if (conn != null) conn.close(); } catch (Exception e) {}
+    }
+%>
+
+    <div class="info" style="margin-top:20px;">
+        <strong>💡 实验时操作提示：</strong><br>
+        1. 修改 <code>WEB-INF/classes/dbconfig.properties</code> 中的数据库连接信息<br>
+        2. 确保 <code>WEB-INF/lib/kingbase8-*.jar</code> 驱动存在<br>
+        3. 访问地址：<code>http://服务器IP:8080/KingbaseDemo/index.jsp</code>
+    </div>
+</div>
+</body>
+</html>
+```
+
+#### 文件 ④：`context.xml`（可选 — Tomcat JNDI 数据源配置方式）
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- 
+      备选方案：Tomcat JNDI 数据源配置
+      如果使用 JNDI，将此文件放入 META-INF/context.xml
+      并在 web.xml 中配置 <resource-ref>
+    -->
+    <Resource name="jdbc/KingbaseDS"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="com.kingbase8.Driver"
+              url="jdbc:kingbase8://127.0.0.1:54321/test"
+              username="system"
+              password="123456"
+              maxTotal="20"
+              maxIdle="10"
+              minIdle="2"
+              maxWaitMillis="10000"/>
+</Context>
+```
+
+---
+
+## 三、U盘文件准备清单
+
+### 3.1 U盘最终目录结构
+
+```
+U盘根目录/
+│
+├── 📁 01_JDK/                          ← 三架构JDK
+│   ├── jdk-11.0.20_linux-x64.tar.gz       （海光 x86-64）
+│   ├── jdk-11.0.20_linux-aarch64.tar.gz   （飞腾 ARM64）
+│   └── jdk-11.0.20_linux-loongarch64.tar.gz  （龙芯 LoongArch64）
+│
+├── 📁 02_Tomcat/
+│   └── apache-tomcat-9.0.90.tar.gz        （通用，一份即可）
+│
+├── 📁 03_Web项目/
+│   └── KingbaseDemo.war                   （打包好的Web项目）
+│
+├── 📁 04_数据库驱动/
+│   └── kingbase8-8.6.0.jar               （人大金仓JDBC驱动）
+│
+├── 📁 05_项目源码/
+│   └── KingbaseDemo/                      （源码目录，方便修改）
+│       ├── WebContent/
+│       │   ├── index.jsp
+│       │   ├── WEB-INF/
+│       │   │   ├── web.xml
+│       │   │   ├── lib/
+│       │   │   │   └── kingbase8-8.6.0.jar
+│       │   │   └── classes/
+│       │   │       └── dbconfig.properties
+│       │   └── META-INF/
+│       │       └── context.xml
+│       └── 说明.txt
+│
+└── 📋 README.md                          ← 操作说明
+```
+
+### 3.2 README.md 操作说明
+
+```markdown
+# 离线国产化环境 J2EE + 人大金仓 实验部署指南
+
+## 第〇步：确认CPU架构
+uname -m
+# 输出 x86_64  → 海光
+# 输出 aarch64 → 飞腾
+# 输出 loongarch64 → 龙芯
+
+## 第一步：安装JDK
+# 海光 (x86-64):
+tar -xzf jdk-11.0.20_linux-x64.tar.gz -C /opt/
+
+# 飞腾 (aarch64):
+tar -xzf jdk-11.0.20_linux-aarch64.tar.gz -C /opt/
+
+# 龙芯 (loongarch64):
+tar -xzf jdk-11.0.20_linux-loongarch64.tar.gz -C /opt/
+
+# 设置环境变量（三架构通用，注意JDK目录名）:
+echo 'export JAVA_HOME=/opt/jdk-11.0.20' >> ~/.bashrc
+echo 'export PATH=$JAVA_HOME/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+java -version   # 验证
+
+## 第二步：安装Tomcat
+tar -xzf apache-tomcat-9.0.90.tar.gz -C /opt/
+chmod +x /opt/apache-tomcat-9.0.90/bin/*.sh
+
+## 第三步：部署Web项目
+cp KingbaseDemo.war /opt/apache-tomcat-9.0.90/webapps/
+
+## 第四步：修改数据库配置 ← ← ← 实验时改这里！
+vim /opt/apache-tomcat-9.0.90/webapps/KingbaseDemo/WEB-INF/classes/dbconfig.properties
+# 修改 db.url, db.username, db.password 三项
+
+## 第五步：启动Tomcat
+/opt/apache-tomcat-9.0.90/bin/startup.sh
+
+## 第六步：浏览器访问
+http://服务器IP:8080/KingbaseDemo/index.jsp
+```
+
+---
+
+## 四、实验时在控制台需要插入的 SQL
+
+实验时在人大金仓数据库中执行以下 SQL 建表并插入数据（id 为 3 组）：
+
+```sql
+-- 建表
+CREATE TABLE student (
+    id    VARCHAR(20),
+    info  VARCHAR(200),
+    class VARCHAR(50)
+);
+
+-- 插入3组数据（id='3' 表示第3组）
+INSERT INTO student (id, info, class) VALUES ('3', '第3组-飞腾/龙芯/海光国产化平台J2EE实验成功', '软件工程3班');
+INSERT INTO student (id, info, class) VALUES ('3', '人大金仓KingbaseES数据库连接测试通过', '软件工程3班');
+INSERT INTO student (id, info, class) VALUES ('3', '控制台输出信息-离线国产化环境部署验证完成', '软件工程3班');
+```
+
+---
+
+## 五、关键注意事项总结
+
+| 序号 | 注意项 | 说明 |
+|:---:|--------|------|
+| 1 | **龙芯JDK特殊** | 必须去龙芯中科官网下载LoongArch64版JDK，不能用普通OpenJDK |
+| 2 | **JDBC驱动** | KingbaseES JDBC驱动 `kingbase8-*.jar` 需提前下载放入 `WEB-INF/lib/` |
+| 3 | **配置文件** | 实验时只需修改 `dbconfig.properties` 中的 URL/用户名/密码 |
+| 4 | **Tomcat一份即可** | 纯Java项目跨架构，不需要分架构版本 |
+| 5 | **U盘格式** | 建议格式化为 FAT32 或 exFAT，确保国产Linux能挂载 |
+| 6 | **端口检查** | 实验前确认 8080 端口未被占用：`netstat -tlnp \| grep 8080` |
+
+---
+
+## 六、Tomcat 的 WEB-INF/classes 路径说明
+
+`index.jsp` 中通过以下代码读取配置文件：
+
+```java
+InputStream input = application.getResourceAsStream("/WEB-INF/classes/dbconfig.properties");
+```
+
+这要求 `dbconfig.properties` 必须放在 **`WEB-INF/classes/`** 目录下。
+
+部署后的完整路径为：
+```
+/opt/apache-tomcat-9.0.90/webapps/KingbaseDemo/WEB-INF/classes/dbconfig.properties
+```
+
+---
+
+## 七、浏览器最终预期效果
+
+浏览器输入 `http://服务器IP:8080/KingbaseDemo/index.jsp`，预期显示：
+
+```
+✅ 数据库连接成功！URL: jdbc:kingbase8://xxx.xxx.xxx.xxx:54321/test
+
+┌────────┬──────────┬──────────────────────────────────────┬──────────────┐
+│  序号   │    ID    │              INFO                   │    CLASS     │
+├────────┼──────────┼──────────────────────────────────────┼──────────────┤
+│   1    │    3     │ 第3组-国产化平台J2EE实验成功          │ 软件工程3班   │
+│   2    │    3     │ 人大金仓KingbaseES数据库连接测试通过   │ 软件工程3班   │
+│   3    │    3     │ 离线国产化环境部署验证完成             │ 软件工程3班   │
+└────────┴──────────┴──────────────────────────────────────┴──────────────┘
+
+📊 共查询到 3 条记录
+```
+
+---
+
+以上就是实验前的完整准备工作。你需要在有互联网的环境下完成：
+1. 下载三架构 JDK
+2. 下载 Tomcat 9
+3. 下载 KingbaseES JDBC 驱动
+4. 创建项目文件并打包
+5. 全部拷贝进 U盘
+
+到实验室后只需**改一个配置文件 + 启动 Tomcat** 即可完成实验。
+
+---
+
+The user wants me to start from after the project is created and give them a complete step-by-step guide. Let me think about what needs to happen after the Maven archetype project is created.
+
+Let me lay out the full workflow:
+
+1. Project created - verify the structure
+2. Add missing source directories
+3. Configure pom.xml (add dependencies, set packaging to war, add maven-compiler-plugin, configure Alibaba mirror)
+4. Create the Java source files (servlet, model, db utility)
+5. Create web.xml
+6. Create JSP pages
+7. Create dbconfig.properties
+8. Add kingbase JDBC driver
+9. Configure Tomcat in IDEA
+10. Run/debug the project
+11. Package as WAR
+
+Let me give a clear, numbered step-by-step guide.
+
+Actually, thinking more carefully - the user already has existing code they wrote before. So I should focus on:
+
+1. Verify project structure
+2. Add missing directories (java, resources)
+3. Configure pom.xml 
+4. Add the existing code files into the right places
+5. Add kingbase8.jar to WEB-INF/lib
+6. Configure Tomcat
+7. Deploy and run
+8. Package WAR
+
+Let me provide a clean, structured guide.
+好的！从项目创建成功之后开始，给你完整的步骤梳理：
+
+---
+
+## 📋 项目创建成功后 → 完整步骤指南
+
+---
+
+### ▶️ 第1步：验证项目结构
+
+创建完成后，左侧项目栏应该看到：
+
+```
+KingbaseDemo/
+├── pom.xml              ← 这个就是 Maven 配置文件
+└── src/
+    └── main/
+        └── webapp/
+            ├── WEB-INF/
+            │   └── web.xml   ← 已自动生成
+            └── index.jsp     ← 已自动生成
+```
+
+> ✅ 看到以上结构，说明创建成功！
+
+---
+
+### ▶️ 第2步：补充缺失的源码目录
+
+右键点击 `src/main` → New → Directory，创建两个文件夹：
+
+| 目录 | 创建后要做的事 |
+|:----|:-------------|
+| `java` | 右键 → **标记目录为 → 源根**（Sources Root） |
+| `resources` | 右键 → **标记目录为 → 资源根**（Resources Root） |
+
+完成后项目结构变成：
+
+```
+src/main/
+├── java/          ← （图标会变为蓝色）
+├── resources/     ← （图标会带有绿色小叶子）
+└── webapp/
+    ├── WEB-INF/
+    │   └── web.xml
+    └── index.jsp
+```
+
+---
+
+### ▶️ 第3步：配置 pom.xml（核心！）
+
+打开 `pom.xml`，把全部内容替换为以下代码：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.kingbase</groupId>
+    <artifactId>KingbaseDemo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <!-- 关键：打包成WAR包，不是JAR！ -->
+    <packaging>war</packaging>
+    <name>KingbaseDemo</name>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Servlet API (Tomcat 9 默认用 javax.servlet) -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- JSP API -->
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <version>2.3.3</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- JSTL (JSP标准标签库，可选但方便) -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- WAR包最终生成的名字 -->
+        <finalName>KingbaseDemo</finalName>
+        <plugins>
+            <!-- 编译器插件（指定JDK版本） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- WAR打包插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.3.2</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+> 改完后，IDEA 右下角会弹出 **"加载 Maven 变更"** → 点它，让 Maven 下载 Servlet/JSP 依赖。
+
+---
+
+### ▶️ 第4步：配置阿里云镜像（加速下载）
+
+**如果上一步下载依赖很慢**，在 `pom.xml` 末尾 `</project>` 前面加这段：
+
+```xml
+<repositories>
+    <repository>
+        <id>aliyun-central</id>
+        <name>阿里云公共仓库</name>
+        <url>https://maven.aliyun.com/repository/public</url>
+    </repository>
+</repositories>
+```
+
+然后右下角再点一次 **"加载 Maven 变更"**。
+
+---
+
+### ▶️ 第5步：放你的 Java 源码
+
+在 `src/main/java/` 下，按包路径创建文件夹：
+
+```
+src/main/java/
+└── com/
+    └── kingbase/
+        └── demo/
+            ├── HelloServlet.java    ← 你的 Servlet
+            ├── KingbaseDB.java     ← 你的数据库工具类
+            └── User.java           ← 你的实体类
+```
+
+> ✅ **如何创建包**：右键 `java` → New → Package → 输入 `com.kingbase.demo` → OK
+> 
+> ✅ **如何创建类**：右键包名 → New → Java Class → 输入类名 → OK
+>
+> 然后把之前写好的代码粘贴进去。
+
+---
+
+### ▶️ 第6步：放 dbconfig.properties
+
+在 `src/main/resources/` 下创建：
+
+```
+src/main/resources/
+└── dbconfig.properties
+```
+
+内容就是你之前的配置（实验室Linux的IP地址）：
+
+```properties
+driverClassName=com.kingbase8.Driver
+url=jdbc:kingbase8://192.168.xxx.xxx:54321/kingbasedb
+username=system
+password=your_password
+initialSize=5
+maxActive=20
+```
+
+---
+
+### ▶️ 第7步：放 kingbase8-8.6.0.jar
+
+把 `kingbase8-8.6.0.jar` 复制到：
+
+```
+src/main/webapp/WEB-INF/lib/
+└── kingbase8-8.6.0.jar
+```
+
+> 如果没有 `lib` 文件夹 → 右键 `WEB-INF` → New → Directory → 输入 `lib`
+
+---
+
+### ▶️ 第8步：配置 web.xml
+
+打开 `src/main/webapp/WEB-INF/web.xml`，替换为：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+         http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <display-name>KingbaseDemo</display-name>
+
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+    <servlet>
+        <servlet-name>HelloServlet</servlet-name>
+        <servlet-class>com.kingbase.demo.HelloServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>HelloServlet</servlet-name>
+        <url-pattern>/hello</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+---
+
+### ▶️ 第9步：放 index.jsp
+
+`src/main/webapp/index.jsp` 内容可以很简单：
+
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>KingbaseDemo</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Kingbase 人大金仓数据库演示</h1>
+    <a href="${pageContext.request.contextPath}/hello">点击查看数据库连接测试</a>
+</body>
+</html>
+```
+
+---
+
+### ▶️ 第10步：配置 Tomcat 并运行
+
+```
+1. 上方工具栏 → 点击下拉框 → "编辑配置..."
+   或者：运行(Run) → 编辑配置(Edit Configurations)
+
+2. 点左上角 ➕ → 选择 "Tomcat Server" → "本地(Local)"
+
+3. 配置：
+   名称: Tomcat 9
+   应用服务器: 点击"配置" → 选择你Tomcat解压目录
+   (例如 D:\apache-tomcat-9.0.97)
+   
+   URL: http://localhost:8080/KingbaseDemo/
+   
+   启动后打开浏览器: ✅ 勾选
+
+4. 切换到 "部署(Deployment)" 标签：
+   点 ➕ → 工件(Artifact) → 选择 "KingbaseDemo:war exploded"
+   应用上下文(Application context): 改为 /KingbaseDemo
+
+5. 点 "确定" 保存
+```
+
+---
+
+### ▶️ 第11步：启动项目
+
+```
+点右上角的绿色 ▶️（运行按钮）
+```
+
+浏览器自动打开：`http://localhost:8080/KingbaseDemo/`
+
+点击 "点击查看数据库连接测试" → 跳转到 `/hello`
+
+---
+
+### ▶️ 第12步：打 WAR 包（给实验室用）
+
+```
+右侧 Maven 面板 → Lifecycle → 双击 package
+（或展开面板后点三角形执行图标）
+```
+
+等待 BUILD SUCCESS，WAR 包在：
+
+```
+target/
+└── KingbaseDemo.war    ← 就是这个包！
+```
+
+---
+
+## 🔥 总结流程（一键速查）
+
+| 步骤 | 做什么 | 完成状态 |
+|:---:|:------|:--------:|
+| 1 | 验证项目结构 ✅ | ☐ |
+| 2 | 创建 java/ 和 resources/ 目录 | ☐ |
+| 3 | 替换 pom.xml 内容 | ☐ |
+| 4 | （可选）加阿里云镜像 | ☐ |
+| 5 | 放 Java 源码到 java/ 下 | ☐ |
+| 6 | 放 dbconfig.properties | ☐ |
+| 7 | 放 kingbase8.jar 到 WEB-INF/lib/ | ☐ |
+| 8 | 配置 web.xml | ☐ |
+| 9 | 放 index.jsp | ☐ |
+| 10 | 配置 Tomcat 运行环境 | ☐ |
+| 11 | 点击 ▶️ 运行测试 | ☐ |
+| 12 | Maven → package 打WAR包 | ☐ |
+
+---
+
+现在从第1步开始做，有哪一步卡住了随时问我！
+
+---
+
+用户问的是"海光的环境变量在哪"，结合对话上下文，用户现在在实验室，用的可能是"海光"实验室的服务器环境。让我搜索一下相关信息。
+
+"海光"可能是指 Hygon（海光）CPU 架构的服务器，也可能是实验室名称。不过用户更可能是在问实验室 Linux 服务器的环境变量配置在哪里。
+
+让我用搜索工具查一下。
+[object Object]
+搜索结果显示的是通用的Linux Tomcat环境变量配置，并没有直接回答"海光的环境变量在哪"。用户说的"海光"可能是指实验室的特定服务器（海光可能是CPU品牌 Hygon），也可能是实验室的代号或名称。
+
+根据对话上下文，用户在实验室，需要知道环境变量配置在哪里。我需要结合之前的对话来回答——他需要知道的是如何在实验室服务器上配置或查看 JAVA_HOME 等环境变量。
+
+让我直接告诉他如何查看环境变量，因为"海光"很可能是实验室服务器的主机名或环境标识。常见的查看方式：
+
+1. 查看当前 JAVA_HOME：`echo $JAVA_HOME`
+2. 查看所有 Java 相关：`which java` 然后 `ls -l /usr/bin/java` 找真实路径
+3. 全局环境变量在 `/etc/profile`
+4. 用户环境变量在 `~/.bashrc` 或 `~/.bash_profile`
+5. Tomcat 环境变量可以在 `bin/catalina.sh` 里设置
+
+我需要结合上下文告诉他具体怎么做。用户可能问的是"海光"这台服务器上 Tomcat 的环境变量在哪里配置，或者 JAVA_HOME 在哪里。
+"海光"我没法直接搜到对应实验室的文档。但按经验，你说的应该是指**实验室那台服务器上的环境变量配置位置**。在 Linux 上查看/设置环境变量通用方法如下：
+
+---
+
+## 快速查当前环境变量
+
+```bash
+# 查看 JAVA_HOME 设了没
+echo $JAVA_HOME
+
+# 查看 Java 在哪
+which java
+ls -l /usr/bin/java       # 看是不是软链接，找到真实 JDK 路径
+
+# 查看所有 Java 相关变量
+env | grep -i java
+```
+
+---
+
+## 环境变量通常在这 3 个地方
+
+| 级别 | 文件 | 说明 |
+|:-----|:-----|:-----|
+| **全局** | `/etc/profile` | 所有用户生效 |
+| **当前用户** | `~/.bashrc` 或 `~/.bash_profile` | 只对当前用户 |
+| **Tomcat 专属** | `Tomcat目录/bin/catalina.sh` | 只对 Tomcat 生效，写在文件最开头 |
+
+---
+
+## 在实验室你该怎么做
+
+```bash
+# 1. 先看 JAVA_HOME 有没有
+echo $JAVA_HOME
+
+# 2. 没输出的话，找到 Java 路径
+readlink -f $(which java)
+# 假设输出：/opt/jdk1.8.0_202/bin/java
+# 那 JAVA_HOME 就是 /opt/jdk1.8.0_202
+
+# 3. 临时设置（立刻生效，重启失效）
+export JAVA_HOME=/opt/jdk1.8.0_202
+
+# 4. 直接启动 Tomcat（不需要配全局变量也行）
+cd /opt/tomcat9/bin
+JAVA_HOME=/opt/jdk1.8.0_202 ./startup.sh
+```
+
+---
+
+如果你问的不是这个，方便把**"海光"的全称**（是服务器主机名？系统名？CPU 型号？）发给我，我帮你精确找。
+
+---
+
+用户说"问题在程序配置"，这意味着数据库网络是通的（ping和端口都通），但程序连不上数据库。这是配置问题。
+
+让我回顾一下项目环境：
+
+从之前的对话来看，这是一个用 Maven 的 Java Web 项目，需要连接 Kingbase 数据库（人大金仓）。项目名是 KingbaseDemo。
+
+我要帮用户检查程序配置。主要关注：
+- `dbconfig.properties` 或 `application.properties` - 数据库连接配置
+- `web.xml` - 启动配置
+- `pom.xml` - 依赖配置（特别是 Kingbase 驱动）
+- 驱动 jar 是否在 WAR 包的 WEB-INF/lib 里
+
+让我先检查项目里的配置文件，特别是数据库连接相关的内容。我可以用 `exec` 来搜索项目中的配置文件。
+
+不过首先我需要了解用户当前的环境。由于他说"问题在程序配置"，我应该帮他检查配置文件。
+
+让我用工具先查看项目里有哪些配置文件。但我需要知道项目路径。从之前的对话历史来看，项目应该是在某个目录下的 KingbaseDemo 项目。
+
+让我先查看当前工作的环境，看看能访问到什么。
+
+实际上，我可以直接建议用户检查以下几点：
+
+1. `dbconfig.properties` 中的数据库 URL、用户名、密码是否正确
+2. 驱动类名是否正确（人大金仓驱动是 `com.kingbase8.Driver`）
+3. 驱动 jar 包是否在 classpath 中
+
+但更好的做法是，如果我能访问项目文件，直接帮他检查配置。让我用 exec 来查找配置文件。
+
+不过用户现在在实验室的服务器上操作，我不一定能直接访问他的服务器。但之前他用的是 Cherry Studio 的 MCP 工具环境。让我先尝试列出工具，看看有没有能访问文件系统的工具。
+
+让我先列出可用的 MCP 工具。
+
+等等，我现在应该直接帮用户排查问题。既然他说问题在程序配置，我应该：
+
+1. 让他检查 `dbconfig.properties` 
+2. 确认数据库连接参数
+3. 检查驱动 jar
+
+但我也可以用 MCP 工具来看看能否搜索文件系统。先 list 一下工具看看有哪些可用。
+
+实际上我应该先使用 list 工具看看有什么可用的工具，然后用这些工具帮用户排查。
+
+但根据之前的对话，用户的项目是在本地 IDE 中开发的，现在部署到了实验室服务器上。问题出在服务器端的程序配置。
+
+让我直接给他排查步骤，同时也尝试用工具看看能否深入到配置层面。
+
+先搜索一下可用的 MCP 工具。
+问题在程序配置层面，那我帮你逐个排查。先看看有哪些工具可以帮你检查项目：
+[object Object]
+可用的工具只有 MinerU 的两个 OCR 工具，这和排查程序配置没什么关系。
+
+那我需要直接指导用户手动排查。程序配置问题通常集中在以下几个方面：
+
+1. **dbconfig.properties** - 数据库连接 URL、驱动、用户名、密码
+2. **web.xml** - 启动监听器配置
+3. **pom.xml** - 依赖是否正确
+4. **驱动 jar** - 是否在 WAR 包的 WEB-INF/lib 中
+
+按照之前对话，用户的项目应该有这些文件。让我给他一个详细的排查步骤。
+
+关键是：
+- 人大金仓驱动类名：`com.kingbase8.Driver`
+- JDBC URL 格式：`jdbc:kingbase8://IP:PORT/数据库名`
+- 默认端口：54321
+
+常见配置错误：
+1. 驱动类名写错（如写成 `com.kingbase.Driver` 少了 8）
+2. URL 格式错误
+3. 数据库名、用户名、密码不对
+4. 驱动 jar 版本不兼容
+
+我需要让他检查服务器上解压后的配置文件，并对照数据库实际参数。
+好，程序配置问题，我帮你一步一步排查。先在你**实验室服务器上**做以下检查：
+
+---
+
+## 🔧 第 1 步：检查 WAR 包里的数据库配置
+
+```bash
+# 进入解压后的项目目录
+cd /opt/tomcat9/webapps/KingbaseDemo/WEB-INF/classes/
+
+# 查看数据库配置文件
+cat dbconfig.properties
+```
+
+**重点关注这 4 行，逐字核对：**
+
+| 配置项 | 正确写法 | 常见错误 |
+|:-------|:---------|:---------|
+| `driverClassName` | `com.kingbase8.Driver` | ❌ 少了 `8`，写成 `com.kingbase.Driver` |
+| `url` | `jdbc:kingbase8://10.60.35.253:54321/数据库名` | ❌ 数据库名不对、端口写错 |
+| `username` | 老师给的用户名 | ❌ 大小写、多了空格 |
+| `password` | 老师给的密码 | ❌ 特殊字符没转义 |
+
+---
+
+## 🔧 第 2 步：检查驱动 jar 在不在
+
+```bash
+# 确认驱动存在
+ls -la /opt/tomcat9/webapps/KingbaseDemo/WEB-INF/lib/kingbase8*.jar
+```
+
+如果 **没有输出**，说明驱动没打进 WAR 包，你需要：
+
+```bash
+# 手动拷进去
+cp /你的U盘/kingbase8-8.6.0.jar /opt/tomcat9/webapps/KingbaseDemo/WEB-INF/lib/
+```
+
+---
+
+## 🔧 第 3 步：看 Tomcat 日志报的具体错误
+
+```bash
+tail -100 /opt/tomcat9/logs/catalina.out | grep -i -A10 "exception\|error\|fail\|kingbase"
+```
+
+---
+
+## 🔧 第 4 步：验证数据库参数是否正确
+
+在服务器上直接用 JDBC 测一下能不能连：
+
+```bash
+# 用 Java 直接测（把下面参数换成实际的）
+java -cp /opt/tomcat9/webapps/KingbaseDemo/WEB-INF/lib/kingbase8-8.6.0.jar:. \
+  -Djdbc.drivers=com.kingbase8.Driver \
+  -classpath /opt/tomcat9/webapps/KingbaseDemo/WEB-INF/lib/kingbase8-8.6.0.jar
+```
+
+或者更简单，用 **DBeaver / Datagrip** 在实验室电脑上连一下同样的数据库参数，确认账号密码没问题。
+
+---
+
+**👉 现在执行第 1 步和第 3 步，把输出贴给我，我帮你定位具体是哪个配置项写错了。**
+
+---
+
+The user is asking where to copy their WAR file on the "海光" (Haiguang) server. This is about finding the Tomcat webapps directory location. Let me use the builtin_web_search tool to search for this, and also check the MCP tools available.
+
+Wait, the user is asking a straightforward question about where to deploy a WAR file on their lab server. The "海光" likely refers to a server with a Hygon (海光) CPU, but this is more about the Tomcat deployment path. Let me first try to search for this, and also list the available MCP tools to see if there are any relevant ones.
+
+Actually, looking at the builtin_web_search tool, it has a prepared query about "海光服务器上 Tomcat 部署 WAR 包的 webapps 目录位置". Let me use that. But also, I should look at MCP tools first - let me list them.
+[object Object]
+[object Object]
+The search results don't specifically mention "海光" server. The question is simply about where to copy the WAR file. Based on the search results and general Tomcat knowledge:
+
+The standard location is `tomcat安装目录/webapps/`. The user needs to find their Tomcat installation directory on the "海光" server. 
+
+Since "海光" is likely the hostname or nickname of their lab server (running a Hygon CPU), the Tomcat is probably installed at a path like `/opt/tomcat9` or `/usr/local/tomcat`. The user needs to put the WAR file in the `webapps` directory under the Tomcat installation.
+
+Let me give a clear, practical answer on how to find the Tomcat webapps directory on their server.
+## WAR 包应该拷到 Tomcat 的 `webapps` 目录下
+
+你需要在**海光服务器上**找到 Tomcat 安装目录，然后把 WAR 包放进去。
+
+---
+
+### 📍 先找到 Tomcat 装在哪
+
+在服务器上执行：
+
+```bash
+# 方法1：找 tomcat 进程
+ps aux | grep tomcat | grep -v grep
+
+# 方法2：搜索 webapps 目录
+find / -name "webapps" -type d 2>/dev/null | grep tomcat
+
+# 方法3：常见路径逐个试
+ls /opt/tomcat*/webapps/
+ls /usr/local/tomcat*/webapps/
+ls /home/*/tomcat*/webapps/
+```
+
+---
+
+### 📂 找到后，拷进去
+
+假设 Tomcat 装在 `/opt/tomcat9`，那么：
+
+```bash
+# 1. 先停 Tomcat
+/opt/tomcat9/bin/shutdown.sh
+
+# 2. 拷 WAR 包到 webapps
+cp /你的U盘路径/KingbaseDemo.war /opt/tomcat9/webapps/
+
+# 3. 确认拷进去了
+ls -la /opt/tomcat9/webapps/KingbaseDemo.war
+
+# 4. 启动 Tomcat
+/opt/tomcat9/bin/startup.sh
+```
+
+Tomcat 启动后会自动把 `KingbaseDemo.war` 解压成 `KingbaseDemo` 文件夹 [3][4]。
+
+---
+
+### ⚠️ 注意
+
+- 如果之前部署过，先把旧的删干净：
+
+```bash
+rm -rf /opt/tomcat9/webapps/KingbaseDemo
+rm -f /opt/tomcat9/webapps/KingbaseDemo.war
+```
+
+- **不要**放到 `webapps/ROOT/` 里面，那是去掉项目名用的，放外面就行 [1]。
+
+---
+
+**👉 你先执行 `find / -name "webapps" -type d 2>/dev/null | grep tomcat`，把输出贴给我，我帮你确认路径是否正确。**
+
+---
+
+用户想知道在浏览器中访问部署在Tomcat上的WAR包的正确的URL后缀。让我先搜索一下相关信息。
+[object Object]
+用户问的是"要在浏览器打开，正确的后缀名是"。结合之前的对话，用户是在问访问部署在Tomcat上的WAR包项目的URL格式。根据搜索结果[4]，WAR文件名决定了访问路径。例如，如果WAR包叫`KingbaseDemo.war`，那么访问URL就是`http://服务器IP:8080/KingbaseDemo/`。
+
+用户可能在问URL里面应该用什么后缀名，比如`.jsp`、`.html`、`.do`之类的。但根据之前对话，老师给的路径是`http://10.60.35.xxx:8080/KingbaseDemo/hello`，后面是`/hello`，没有文件后缀。
+
+让我直接告诉用户：URL的格式是 `http://IP:8080/KingbaseDemo/` + 具体的路径（比如 `/hello`），没有固定的后缀名，后缀取决于项目里实际映射的路径。
+
+根据之前的对话，用户老师给的示例是 `http://IP:8080/KingbaseDemo/hello`，所以正确的后缀是 `/hello`。
+## 浏览器访问的正确格式
+
+URL 格式是：
+
+```
+http://服务器IP:8080/KingbaseDemo/hello
+```
+
+**拆解：**
+
+| 部分 | 含义 | 你的值 |
+|:-----|:-----|:-----|
+| `http://` | 协议 | 固定的 |
+| `服务器IP` | 海光服务器的 IP | 老师给的，比如 `10.60.35.xxx` |
+| `:8080` | Tomcat 端口 | 默认 8080 |
+| `/KingbaseDemo` | WAR 包名去掉 `.war` | 你的 WAR 叫 `KingbaseDemo.war` |
+| `/hello` | 项目里的路径 | 老师给的，不用改 |
+
+---
+
+### ⚠️ 注意
+
+- **后缀不是固定的**，取决于你项目里写了什么路径映射。
+- 老师给你的示例 `/hello` 后面**不需要加 `.jsp`、`.html` 之类**，除非老师明确写了带后缀的完整路径。
+- WAR 包的名字决定了中间那一段：如果 WAR 叫 `AAA.war`，那就访问 `/AAA/hello` [4]。
+
+---
+
+所以你的完整地址应该类似：
+
+```
+http://10.60.35.xxx:8080/KingbaseDemo/hello
+```
+
+把 IP 换成老师给的海光服务器 IP 就行。如果还是连不上，把 `catalina.out` 日志贴给我。

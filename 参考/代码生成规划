@@ -1,0 +1,335 @@
+## 😀 默认助手
+
+
+明白了。也就是说现在这个 `SchoolRegisterSystem` **只是一个空壳 Spring Boot + MyBatis 项目**：
+
+已有：
+
+```
+SchoolRegisterSystem
+├── frontend
+├── src
+│   └── main
+│       ├── java
+│       │   └── com.login.schoolregistersystem
+│       │       ├── common
+│       │       ├── controller
+│       │       ├── entity
+│       │       ├── mapper
+│       │       ├── service
+│       │       └── vo
+│       │       └── SchoolRegisterSystemApplication.java
+│       └── resources
+│           ├── static
+│           ├── templates
+│           ├── application.yml
+│           └── application.properties
+└── pom.xml
+```
+
+但是：
+
+- 没有实体类 ❌
+- 没有 Mapper ❌
+- 没有 Service ❌
+- 没有 Controller ❌
+- 没有数据库表 ❌
+- 没有 SQL ❌
+
+所以现在不是“连接数据库的问题”，而是需要**从零搭建一个学校注册系统后端**。
+
+---
+
+## 我建议的第一版系统结构
+
+根据项目名：
+
+> SchoolRegisterSystem（学校注册系统）
+
+做一个基础版本：
+
+### 功能：
+
+### 1. 用户登录
+
+表：
+
+```
+user
+```
+
+字段：
+
+|字段|说明|
+|-|-|
+|id|用户ID|
+|username|用户名|
+|password|密码|
+|role|角色(student/admin)|
+
+
+---
+
+### 2. 学生信息管理
+
+表：
+
+```
+student
+```
+
+字段：
+
+|字段|说明|
+|-|-|
+|id|学生ID|
+|student_no|学号|
+|name|姓名|
+|gender|性别|
+|age|年龄|
+|phone|电话|
+|email|邮箱|
+
+
+---
+
+### 3. 课程管理
+
+表：
+
+```
+course
+```
+
+字段：
+
+|字段|说明|
+|-|-|
+|id|课程ID|
+|course_name|课程名|
+|teacher|教师|
+|credit|学分|
+
+
+---
+
+### 4. 学生选课
+
+表：
+
+```
+registration
+```
+
+字段：
+
+|字段|说明|
+|-|-|
+|id|记录ID|
+|student_id|学生|
+|course_id|课程|
+|register_time|注册时间|
+
+
+---
+
+最终数据库：
+
+```
+school_register
+
+├── user
+├── student
+├── course
+└── registration
+```
+
+---
+
+## 对应 Java 结构
+
+生成后：
+
+```
+com.login.schoolregistersystem
+
+├── common
+│    ├── Result.java
+│    └── Constants.java
+│
+├── controller
+│    ├── UserController.java
+│    ├── StudentController.java
+│    ├── CourseController.java
+│    └── RegistrationController.java
+│
+├── entity
+│    ├── User.java
+│    ├── Student.java
+│    ├── Course.java
+│    └── Registration.java
+│
+├── mapper
+│    ├── UserMapper.java
+│    ├── StudentMapper.java
+│    ├── CourseMapper.java
+│    └── RegistrationMapper.java
+│
+├── service
+│    ├── UserService.java
+│    ├── StudentService.java
+│    ├── CourseService.java
+│    └── RegistrationService.java
+│
+├── service.impl
+│    ├── UserServiceImpl.java
+│    ├── StudentServiceImpl.java
+│    ├── CourseServiceImpl.java
+│    └── RegistrationServiceImpl.java
+│
+└── vo
+     └── LoginVO.java
+```
+
+---
+
+## 数据库 SQL
+
+先建立数据库：
+
+```sql
+CREATE DATABASE school_register;
+
+USE school_register;
+```
+
+然后：
+
+### user
+
+```sql
+CREATE TABLE user(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50),
+    password VARCHAR(100),
+    role VARCHAR(20)
+);
+```
+
+插入管理员：
+
+```sql
+INSERT INTO user(username,password,role)
+VALUES('admin','123456','admin');
+```
+
+---
+
+### student
+
+```sql
+CREATE TABLE student(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_no VARCHAR(30),
+    name VARCHAR(50),
+    gender VARCHAR(10),
+    age INT,
+    phone VARCHAR(20),
+    email VARCHAR(100)
+);
+```
+
+---
+
+### course
+
+```sql
+CREATE TABLE course(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    course_name VARCHAR(100),
+    teacher VARCHAR(50),
+    credit INT
+);
+```
+
+---
+
+### registration
+
+```sql
+CREATE TABLE registration(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT,
+    course_id INT,
+    register_time DATETIME
+);
+```
+
+---
+
+## 但是一次性生成全部代码会比较长
+
+我建议按模块生成：
+
+### 第一步：
+先生成：
+
+```
+entity
+mapper
+数据库SQL
+```
+
+让数据库和基础对象跑起来。
+
+### 第二步：
+生成：
+
+```
+service
+service.impl
+```
+
+### 第三步：
+生成：
+
+```
+controller
+接口测试
+```
+
+### 第四步：
+如果需要，再做：
+
+```
+frontend
+Vue页面
+```
+
+---
+
+你现在只需要确认一个问题：
+
+这个项目你想做成哪种？
+
+**A. 简单课程设计版**
+- 登录
+- 学生增删改查
+- 课程管理
+- 选课
+- 后台接口
+
+**B. 完整毕业设计版**
+- 管理员/学生双角色
+- 权限控制
+- 分页查询
+- 文件上传
+- 数据统计
+- Vue 前端
+
+如果只是学校作业，我建议做 A，会更快稳定。
+
+你回复 `A` 或 `B`，我就开始生成对应代码。
+
+AI_APICallError
+Failed to process successful response

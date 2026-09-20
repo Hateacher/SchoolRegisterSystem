@@ -1,0 +1,472 @@
+## 😀 默认助手
+
+
+收到，调整：
+
+- **实际开发环境：JDK 25.0.4**
+- **报告环境：JDK 25（不要再写 JDK17）**
+
+后续代码按照你当前：
+
+```
+Spring Boot 4.0.8
+Java 25
+MyBatis 4.0.1
+MySQL 8
+Lombok
+Validation
+```
+
+生成。
+
+---
+
+# 第1批：数据库 + Entity层
+
+位置：
+
+```
+src/main/java/com/login/schoolregistersystem/entity
+```
+
+创建三个 Java 类：
+
+```
+entity
+├── SysUser.java
+├── Activity.java
+└── ApplyRecord.java
+```
+
+---
+
+# 一、数据库 SQL
+
+创建数据库：
+
+```sql
+CREATE DATABASE school_register
+DEFAULT CHARACTER SET utf8mb4;
+
+USE school_register;
+```
+
+---
+
+## 1. 用户表 sys_user
+
+文件：
+
+```
+school_register.sql
+```
+
+内容：
+
+```sql
+CREATE TABLE sys_user
+(
+    user_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+
+    username VARCHAR(20)
+        NOT NULL UNIQUE COMMENT '用户名',
+
+    password VARCHAR(64)
+        NOT NULL COMMENT '密码',
+
+    real_name VARCHAR(10)
+        NOT NULL COMMENT '真实姓名'
+)
+COMMENT='系统用户表';
+```
+
+---
+
+## 2. 活动表 activity
+
+
+```sql
+CREATE TABLE activity
+(
+    activity_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '活动ID',
+
+    title VARCHAR(100)
+        NOT NULL COMMENT '活动标题',
+
+    description TEXT COMMENT '活动描述',
+
+    max_people INT
+        NOT NULL COMMENT '最大报名人数',
+
+    deadline DATETIME
+        NOT NULL COMMENT '报名截止时间',
+
+    create_user_id BIGINT
+        NOT NULL COMMENT '创建者ID',
+
+    create_time DATETIME
+        DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+
+
+    CONSTRAINT fk_activity_user
+
+    FOREIGN KEY(create_user_id)
+
+    REFERENCES sys_user(user_id)
+
+)
+COMMENT='校园活动表';
+```
+
+---
+
+## 3. 报名记录表 apply_record
+
+
+```sql
+CREATE TABLE apply_record
+(
+    id BIGINT PRIMARY KEY AUTO_INCREMENT
+        COMMENT '报名记录ID',
+
+    user_id BIGINT NOT NULL
+        COMMENT '报名用户ID',
+
+    activity_id BIGINT NOT NULL
+        COMMENT '活动ID',
+
+    create_time DATETIME
+        DEFAULT CURRENT_TIMESTAMP
+        COMMENT '报名时间',
+
+
+    UNIQUE KEY uk_user_activity
+    (
+        user_id,
+        activity_id
+    ),
+
+
+    CONSTRAINT fk_apply_user
+
+    FOREIGN KEY(user_id)
+
+    REFERENCES sys_user(user_id),
+
+
+
+    CONSTRAINT fk_apply_activity
+
+    FOREIGN KEY(activity_id)
+
+    REFERENCES activity(activity_id)
+
+)
+COMMENT='活动报名记录表';
+```
+
+---
+
+# 二、Entity代码
+
+
+## 1. SysUser.java
+
+
+路径：
+
+```
+entity/SysUser.java
+```
+
+
+```java
+package com.login.schoolregistersystem.entity;
+
+
+import lombok.Data;
+
+
+@Data
+public class SysUser {
+
+
+    /**
+     * 用户ID
+     */
+    private Long userId;
+
+
+    /**
+     * 用户名
+     */
+    private String username;
+
+
+    /**
+     * 密码
+     */
+    private String password;
+
+
+    /**
+     * 真实姓名
+     */
+    private String realName;
+
+}
+```
+
+---
+
+## 2. Activity.java
+
+
+路径：
+
+```
+entity/Activity.java
+```
+
+
+```java
+package com.login.schoolregistersystem.entity;
+
+
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+
+
+@Data
+public class Activity {
+
+
+    /**
+     * 活动ID
+     */
+    private Long activityId;
+
+
+    /**
+     * 活动标题
+     */
+    private String title;
+
+
+
+    /**
+     * 活动描述
+     */
+    private String description;
+
+
+
+    /**
+     * 最大人数
+     */
+    private Integer maxPeople;
+
+
+
+    /**
+     * 报名截止时间
+     */
+    private LocalDateTime deadline;
+
+
+
+    /**
+     * 创建用户ID
+     */
+    private Long createUserId;
+
+
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+
+}
+```
+
+---
+
+## 3. ApplyRecord.java
+
+
+路径：
+
+```
+entity/ApplyRecord.java
+```
+
+
+```java
+package com.login.schoolregistersystem.entity;
+
+
+import lombok.Data;
+
+
+import java.time.LocalDateTime;
+
+
+
+@Data
+public class ApplyRecord {
+
+
+    /**
+     * 报名记录ID
+     */
+    private Long id;
+
+
+
+    /**
+     * 用户ID
+     */
+    private Long userId;
+
+
+
+    /**
+     * 活动ID
+     */
+    private Long activityId;
+
+
+
+    /**
+     * 报名时间
+     */
+    private LocalDateTime createTime;
+
+
+}
+```
+
+---
+
+# 三、解决字段映射问题
+
+你文档里面有一个冲突：
+
+数据库：
+
+```
+max_people
+```
+
+Java：
+
+```
+maxPeople
+```
+
+MyBatis 默认不会自动识别。
+
+所以后面 Mapper SQL 必须写：
+
+```sql
+max_people AS maxPeople
+```
+
+例如：
+
+```sql
+SELECT
+activity_id AS activityId,
+title,
+description,
+max_people AS maxPeople,
+deadline,
+create_user_id AS createUserId,
+create_time AS createTime
+
+FROM activity;
+```
+
+这样不用改实体。
+
+
+---
+
+# 四、启动类需要补充 Mapper 扫描
+
+你现在启动日志：
+
+```
+No MyBatis mapper was found
+```
+
+因为 mapper 还没有。
+
+等生成 Mapper 后，把：
+
+`SchoolRegisterSystemApplication.java`
+
+改成：
+
+```java
+package com.login.schoolregistersystem;
+
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+
+
+@SpringBootApplication
+
+@MapperScan(
+"com.login.schoolregistersystem.mapper"
+)
+
+public class SchoolRegisterSystemApplication {
+
+
+    public static void main(String[] args) {
+
+        SpringApplication.run(
+                SchoolRegisterSystemApplication.class,
+                args
+        );
+
+    }
+
+}
+```
+
+---
+
+第1批完成。
+
+下一批生成：
+
+# 第2批：Mapper层
+
+包含：
+
+```
+mapper
+├── SysUserMapper.java
+├── ActivityMapper.java
+└── ApplyMapper.java
+```
+
+并包含 MyBatis 注解 SQL，实现：
+
+- 登录查询
+- 用户注册
+- 活动增删改查
+- 报名查询
+- 人数统计
+- 重复报名判断
+
+直接复制即可运行。

@@ -1,0 +1,290 @@
+## 😀 默认助手
+
+
+明白。后续不再按“普通学校注册系统”设计，而是**严格按照你提供的《四人成果、前后端契约》和报告模板**来生成。
+
+你的项目最终定位为：
+
+# 校园活动系统（SchoolRegisterSystem）
+
+技术：
+
+- 后端：Spring Boot 4.0.8
+- Java：17（你当前 JDK 25 也可以运行，但报告写 JDK17）
+- 数据库：MySQL 8.0
+- 持久层：MyBatis
+- 前端：Vue（frontend 文件夹）
+
+---
+
+## 后端最终目录
+
+在：
+
+```
+src/main/java/com/login/schoolregistersystem
+```
+
+生成：
+
+```
+common
+ └── Result.java
+
+controller
+ ├── UserController.java
+ ├── ActivityController.java
+ └── ApplyController.java
+
+
+entity
+ ├── SysUser.java
+ ├── Activity.java
+ └── ApplyRecord.java
+
+
+mapper
+ ├── UserMapper.java
+ ├── ActivityMapper.java
+ └── ApplyMapper.java
+
+
+service
+ ├── UserService.java
+ ├── ActivityService.java
+ └── ApplyService.java
+
+
+service/impl
+ ├── UserServiceImpl.java
+ ├── ActivityServiceImpl.java
+ └── ApplyServiceImpl.java
+
+
+vo
+ ├── LoginVO.java
+ └── ApplyVO.java
+```
+
+---
+
+## 数据库确定采用报告版本
+
+数据库：
+
+```
+school_register
+```
+
+三张核心表：
+
+```
+sys_user
+activity
+apply_record
+```
+
+---
+
+## sys_user
+
+```sql
+CREATE TABLE sys_user(
+    user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(64) NOT NULL,
+    real_name VARCHAR(10) NOT NULL
+);
+```
+
+---
+
+## activity
+
+```sql
+CREATE TABLE activity(
+    activity_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    max_people INT NOT NULL,
+    deadline DATETIME NOT NULL,
+    create_user_id BIGINT NOT NULL,
+    create_time DATETIME DEFAULT NOW(),
+
+    FOREIGN KEY(create_user_id)
+    REFERENCES sys_user(user_id)
+);
+```
+
+---
+
+## apply_record
+
+```sql
+CREATE TABLE apply_record(
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    activity_id BIGINT NOT NULL,
+    create_time DATETIME NOT NULL DEFAULT NOW(),
+
+    UNIQUE(user_id,activity_id),
+
+    FOREIGN KEY(user_id)
+    REFERENCES sys_user(user_id),
+
+    FOREIGN KEY(activity_id)
+    REFERENCES activity(activity_id)
+);
+```
+
+---
+
+## 接口全部按照 D 契约
+
+统一：
+
+```
+/api
+```
+
+返回：
+
+```json
+{
+ "code":200,
+ "msg":"",
+ "data":{}
+}
+```
+
+
+---
+
+## 用户接口
+
+```
+POST /api/user/register
+
+POST /api/user/login
+```
+
+
+登录返回：
+
+```json
+{
+ "code":200,
+ "msg":"登录成功",
+ "data":{
+    "token":"",
+    "userId":"",
+    "username":"",
+    "realName":""
+ }
+}
+```
+
+---
+
+## 活动接口
+
+```
+POST
+/api/activity/add
+
+
+PUT
+/api/activity/update
+
+
+DELETE
+/api/activity/delete/{id}
+
+
+GET
+/api/activity/list
+
+
+GET
+/api/activity/detail/{id}
+```
+
+---
+
+## 报名接口
+
+```
+POST
+/api/apply/{activityId}
+
+
+DELETE
+/api/apply/{activityId}
+
+
+GET
+/api/apply/my
+```
+
+报名 Service 层严格执行：
+
+```
+1. 活动是否存在
+↓
+2. 是否超过deadline
+↓
+3. 当前人数是否达到max_people
+↓
+4. 是否重复报名
+```
+
+---
+
+## 生成顺序
+
+因为代码量较大，我会分批生成：
+
+### 第1批
+数据库 + Entity
+
+包含：
+
+```
+SysUser.java
+Activity.java
+ApplyRecord.java
+```
+
+### 第2批
+Mapper
+
+### 第3批
+Service + Impl
+
+### 第4批
+Controller
+
+### 第5批
+Vue 前端页面：
+
+```
+login.vue
+register.vue
+activitylist.vue
+activitydetail.vue
+activitypublish.vue
+activityedit.vue
+myapply.vue
+```
+
+### 第6批
+报告需要内容：
+
+- 类图对应说明
+- 时序图文字描述
+- 系统实现章节
+- 测试章节
+
+---
+
+我下一条开始直接生成**第1批：数据库 SQL + 三个 Entity 类代码**，放入你现在的文件夹结构即可。
