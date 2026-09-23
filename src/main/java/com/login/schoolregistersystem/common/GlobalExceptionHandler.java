@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理：所有接口异常统一转换为 {code, msg, data} 结构
@@ -26,6 +27,12 @@ public class GlobalExceptionHandler {
                 .map(f -> f.getDefaultMessage())
                 .orElse("参数校验失败");
         return Result.error(400, msg);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Result<Void> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.debug("资源不存在: {}", e.getMessage());
+        return Result.error(404, "请求的资源不存在");
     }
 
     /** 未知异常：统一按服务器异常处理 */

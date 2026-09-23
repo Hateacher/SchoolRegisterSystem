@@ -28,4 +28,8 @@ public interface UserMapper {
     /** 登录成功后写入令牌 */
     @Update("UPDATE sys_user SET token = #{token} WHERE user_id = #{userId}")
     int updateToken(@Param("userId") Long userId, @Param("token") String token);
+
+    /** 兼容旧密码做升级时更新为 BCrypt 哈希 */
+    @Update("UPDATE sys_user SET password = #{password} WHERE user_id = #{userId}")
+    int updatePassword(@Param("userId") Long userId, @Param("password") String password);
 }

@@ -9,6 +9,8 @@ import com.login.schoolregistersystem.vo.LoginVO;
 import com.login.schoolregistersystem.vo.RegisterVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -20,6 +22,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+    private static final PasswordEncoder PASSWORD_ENCODER = new BCryptPasswordEncoder();
 
     private final UserMapper userMapper;
 
@@ -33,7 +37,7 @@ public class UserServiceImpl implements UserService {
         }
         SysUser user = new SysUser();
         user.setUsername(vo.getUsername());
-        user.setPassword(sha256(vo.getPassword()));
+        user.setPassword(PASSWORD_ENCODER.encode(vo.getPassword()));
         user.setRealName(vo.getRealName());
         try {
             userMapper.insert(user);
@@ -50,8 +54,12 @@ public class UserServiceImpl implements UserService {
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
-        if (!sha256(vo.getPassword()).equals(user.getPassword())) {
+        if (!matchesPassword(vo.getPassword(), user.getPassword())) {
             throw new BusinessException("密码错误");
+        }
+        if (needsPasswordUpgrade(user.getPassword())) {
+            user.setPassword(PASSWORD_ENCODER.encode(vo.getPassword()));
+            userMapper.updatePassword(user.getUserId(), user.getPassword());
         }
         String token = UUID.randomUUID().toString().replace("-", "");
         userMapper.updateToken(user.getUserId(), token);
@@ -69,7 +77,21 @@ public class UserServiceImpl implements UserService {
         return userMapper.selectByToken(token);
     }
 
-    /** SHA-256 摘要（无盐），与数据库 password 字段（VARCHAR 64）对应 */
+    private static boolean matchesPassword(String rawPassword, String storedPassword) {
+        if (storedPassword == null || storedPassword.isBlank()) {
+            return false;
+        }
+        if (needsPasswordUpgrade(storedPassword)) {
+            return sha256(rawPassword).equalsIgnoreCase(storedPassword);
+        }
+        return PASSWORD_ENCODER.matches(rawPassword, storedPassword);
+    }
+
+    private static boolean needsPasswordUpgrade(String storedPassword) {
+        return storedPassword != null && !storedPassword.startsWith("$2");
+    }
+
+    /** SHA-256 摘要（仅用于兼容数据库中已存在的旧明文/无盐哈希值） */
     private static String sha256(String raw) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

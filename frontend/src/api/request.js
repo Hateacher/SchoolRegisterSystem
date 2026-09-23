@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import router from '@/router'
 import { clearLoginState } from '@/utils/auth'
 
 /**
@@ -29,7 +30,7 @@ request.interceptors.response.use(
     if (res.code === 401) {
       clearLoginState()
       ElMessage.error(res.msg || '未登录或登录已过期')
-      import('@/router').then((module) => module.default.push('/login'))
+      router.replace('/login')
     } else {
       ElMessage.error(res.msg || '操作失败')
     }

@@ -27,6 +27,10 @@ public interface ActivityMapper {
     @Select("SELECT " + COLUMNS + " FROM activity a WHERE a.activity_id = #{id}")
     Activity selectById(@Param("id") Long id);
 
+    /** 按ID查询活动并对该行加写锁，避免并发报名超额 */
+    @Select("SELECT " + COLUMNS + " FROM activity a WHERE a.activity_id = #{id} FOR UPDATE")
+    Activity selectByIdForUpdate(@Param("id") Long id);
+
     /** 新增活动，主键回填到 activityId */
     @Insert("INSERT INTO activity(title, description, max_people, deadline, create_user_id) "
             + "VALUES(#{title}, #{description}, #{maxPeople}, #{deadline}, #{createUserId})")

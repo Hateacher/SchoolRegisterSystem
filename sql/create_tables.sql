@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS sys_user
 (
     user_id   BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     username  VARCHAR(20) NOT NULL UNIQUE        COMMENT '用户名',
-    password  VARCHAR(64) NOT NULL               COMMENT '密码（SHA-256 摘要）',
+    password  VARCHAR(255) NOT NULL              COMMENT '密码（BCrypt 哈希，兼容旧 SHA-256 记录）',
     real_name VARCHAR(10) NOT NULL               COMMENT '真实姓名',
     token     VARCHAR(64) NULL                   COMMENT '登录令牌（登录时生成）'
-) COMMENT = '系统用户表';
+) ENGINE = InnoDB COMMENT = '系统用户表';
 
 -- ------------------------------------------------------------
 -- 2. 校园活动表 activity
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS activity
 
     CONSTRAINT fk_activity_user
         FOREIGN KEY (create_user_id) REFERENCES sys_user (user_id)
-) COMMENT = '校园活动表';
+) ENGINE = InnoDB COMMENT = '校园活动表';
 
 -- ------------------------------------------------------------
 -- 3. 活动报名记录表 apply_record
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS apply_record
         FOREIGN KEY (user_id) REFERENCES sys_user (user_id),
     CONSTRAINT fk_apply_activity
         FOREIGN KEY (activity_id) REFERENCES activity (activity_id)
-) COMMENT = '活动报名记录表';
+) ENGINE = InnoDB COMMENT = '活动报名记录表';
 
 -- ============================================================
 -- 示例数据（两个测试账号密码均为 123456，存储的是其 SHA-256 摘要）

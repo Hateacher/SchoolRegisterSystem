@@ -28,14 +28,17 @@ public class ApplyServiceImpl implements ApplyService {
     @Override
     @Transactional
     public void apply(Long activityId, Long loginUserId) {
-        Activity activity = activityMapper.selectById(activityId);
+        Activity activity = activityMapper.selectByIdForUpdate(activityId);
         if (activity == null) {
             throw new BusinessException("活动不存在");
         }
         if (LocalDateTime.now().isAfter(activity.getDeadline())) {
             throw new BusinessException("活动已截止，无法报名");
         }
-        if (applyMapper.countByActivity(activityId) >= activity.getMaxPeople()) {
+        if (activity.getAppliedCount() == null) {
+            activity.setAppliedCount(0);
+        }
+        if (activity.getAppliedCount() >= activity.getMaxPeople()) {
             throw new BusinessException("名额已满，无法报名");
         }
         if (applyMapper.countByUserAndActivity(loginUserId, activityId) > 0) {
